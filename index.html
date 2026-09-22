@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday Sandra</title>
+<style>
+  :root {
+    --ikea-blue: #0058a3;
+    --ikea-yellow: #ffdb00;
+    --jysk: #c2185b;
+    --jysk-soft: #fbf0f6;
+    --both: #5f2a6e;
+    --both-soft: linear-gradient(135deg, #eef5fb, #fbeef8);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: linear-gradient(160deg, #fdf0d5 0%, #ffe8b5 45%, #f7c9c9 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  /* ---------- Luftballons ---------- */
+  .balloon {
+    position: fixed;
+    bottom: -190px;
+    z-index: 0;
+    border-radius: 50% 50% 48% 52% / 44% 44% 56% 56%;
+    box-shadow: inset -9px -12px 18px rgba(0, 0, 0, .07);
+    background:
+      radial-gradient(circle at 32% 26%, rgba(255, 255, 255, .9), rgba(255, 255, 255, 0) 42%),
+      var(--col);
+    animation: floatUp linear infinite;
+    will-change: transform;
+  }
+
+  .balloon::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -14px;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-width: 13px;
+    border-top-color: var(--col);
+  }
+
+  .balloon::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 110px;
+    background: linear-gradient(rgba(80, 80, 80, .4), rgba(80, 80, 80, 0));
+  }
+
+  @keyframes floatUp {
+    0%   { transform: translate3d(0, 0, 0) rotate(-5deg); }
+    20%  { transform: translate3d(-38px, -22vh, 0) rotate(4deg); }
+    45%  { transform: translate3d(26px, -48vh, 0) rotate(-4deg); }
+    70%  { transform: translate3d(-22px, -74vh, 0) rotate(5deg); }
+    100% { transform: translate3d(0, -120vh, 0) rotate(-4deg); }
+  }
+
+  /* ---------- Einblend-Animationen ---------- */
+  .card {
+    animation: popIn .7s cubic-bezier(.22, 1.4, .42, 1) both;
+  }
+
+  h1         { animation: riseIn .7s ease .18s both; }
+  p.sub      { animation: riseIn .7s ease .32s both; }
+  .option    { animation: riseIn .6s ease both; }
+  .option:nth-child(1) { animation-delay: .48s; }
+  .option:nth-child(2) { animation-delay: .62s; }
+  .option:nth-child(3) { animation-delay: .76s; }
+  label.field { animation: riseIn .6s ease .9s both; }
+  input[type="email"] { animation: riseIn .6s ease 1.02s both; }
+  #sendBtn   { animation: riseIn .6s ease 1.14s both; }
+  .thanks    { animation: popIn .8s cubic-bezier(.22, 1.4, .42, 1) both; }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(.82); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes riseIn {
+    from { opacity: 0; transform: translateY(26px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .balloon, .card, h1, p.sub, .option, label.field,
+    input[type="email"], #sendBtn, .thanks { animation: none !important; }
+  }
+
+  /* ---------- Karte & Formular ---------- */
+  .card {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .18);
+    max-width: 780px;
+    width: 100%;
+    padding: 40px 32px 34px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 8px;
+    background: linear-gradient(90deg, var(--ikea-blue) 0%, var(--ikea-yellow) 50%, var(--jysk) 100%);
+  }
+
+  h1 {
+    font-size: 1.9rem;
+    text-align: center;
+    color: #333;
+  }
+
+  p.sub {
+    text-align: center;
+    color: #666;
+    margin: 10px 0 28px;
+    font-size: 1.05rem;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .option {
+    display: block;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .option .box {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    border: 2px solid #e2e2e2;
+    border-radius: 16px;
+    padding: 16px 20px;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    background: #fff;
+  }
+
+  .option:hover .box {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .10);
+  }
+
+  .option input:checked + .box {
+    border-width: 3px;
+  }
+
+  .option input:checked + .box.ikea {
+    border-color: var(--ikea-blue);
+    background: #eef5fb;
+    box-shadow: 0 8px 24px rgba(0, 88, 163, .25);
+  }
+
+  .option input:checked + .box.jysk {
+    border-color: var(--jysk);
+    background: var(--jysk-soft);
+    box-shadow: 0 8px 24px rgba(194, 24, 91, .20);
+  }
+
+  .option input:checked + .box.both {
+    border-color: var(--both);
+    background: var(--both-soft);
+    box-shadow: 0 8px 24px rgba(95, 42, 110, .22);
+  }
+
+  .box .badge {
+    flex: 0 0 auto;
+    font-size: 1.45rem;
+    color: #fff;
+    font-weight: 700;
+    border-radius: 12px;
+    padding: 12px 18px;
+    letter-spacing: 1px;
+    min-width: 118px;
+    text-align: center;
+  }
+
+  .badge.ikea { background: var(--ikea-blue); }
+  .badge.jysk { background: var(--jysk); }
+  .badge.both {
+    background: linear-gradient(90deg, var(--ikea-blue), var(--jysk));
+    font-size: 1.15rem;
+    letter-spacing: 0;
+    min-width: 150px;
+  }
+
+  .box .info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .box .amount {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #333;
+    line-height: 1.3;
+  }
+
+  .box .hint {
+    font-size: .9rem;
+    color: #777;
+    line-height: 1.35;
+  }
+
+  .box .check {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #e3e3e3;
+    color: #fff;
+    font-size: 15px;
+    line-height: 26px;
+    text-align: center;
+    display: none;
+    z-index: 2;
+  }
+
+  .option input:checked + .box.ikea .check { display: block; background: var(--ikea-blue); }
+  .option input:checked + .box.jysk .check  { display: block; background: var(--jysk); }
+  .option input:checked + .box.both .check  { display: block; background: var(--both); }
+
+  label.field {
+    display: block;
+    margin: 26px 0 6px;
+    font-weight: 600;
+    color: #444;
+  }
+
+  input[type="email"] {
+    width: 100%;
+    padding: 13px 15px;
+    font-size: 1.05rem;
+    border: 2px solid #d8d8d8;
+    border-radius: 12px;
+    outline: none;
+    transition: border-color .15s ease;
+  }
+
+  input[type="email"]:focus {
+    border-color: var(--ikea-blue);
+  }
+
+  .err {
+    color: #c33;
+    font-size: .9rem;
+    margin-top: 6px;
+    min-height: 1.2em;
+  }
+
+  #sendBtn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 15px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #333;
+    background: var(--ikea-yellow);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+
+  #sendBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 219, 0, .55); }
+  #sendBtn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+  .thanks { text-align: center; display: none; }
+  .thanks h2 { color: #333; margin: 10px 0 8px; }
+  .thanks p { color: #666; line-height: 1.6; }
+
+  .thanks .mini-baloon {
+    display: inline-block;
+    width: 64px;
+    height: 80px;
+    border-radius: 50% 50% 48% 52% / 44% 44% 56% 56%;
+    background:
+      radial-gradient(circle at 32% 26%, rgba(255, 255, 255, .9), rgba(255, 255, 255, 0) 42%),
+      var(--ikea-blue);
+    position: relative;
+  }
+
+  .thanks .mini-baloon::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -12px;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-width: 11px;
+    border-top-color: var(--ikea-blue);
+  }
+
+  .thanks .mini-baloon.jysk { background:
+      radial-gradient(circle at 32% 26%, rgba(255, 255, 255, .9), rgba(255, 255, 255, 0) 42%),
+      var(--jysk); }
+  .thanks .mini-baloon.jysk::before { border-top-color: var(--jysk); }
+
+  @media (max-width: 520px) {
+    .card { padding: 28px 20px 24px; }
+    h1 { font-size: 1.5rem; }
+    .option .box { gap: 12px; padding: 14px; }
+    .box .badge { font-size: 1.1rem; padding: 10px 12px; min-width: 100px; }
+    .badge.both { min-width: 130px; }
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <form id="voucherForm" action="https://formsubmit.co/dielp01@gmail.com" method="POST" novalidate>
+      <input type="hidden" name="_subject" value="Gutschein-Auswahl zum Geburtstag von Sandra">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_redirect" value="https://dielp01.github.io/geburtstag_sandra/?gesendet=ok">
+      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+
+      <h1>Happy Birthday Sandra!</h1>
+      <p class="sub">Zu deinem Geburtstag schenken wir dir einen Gutschein über <strong>50&nbsp;€</strong>. Was wünschst du dir?</p>
+
+      <div class="options">
+        <label class="option">
+          <input type="radio" name="gutschein" value="IKEA-Gutschein (50 €)" required>
+          <span class="box ikea">
+            <span class="check">&#10003;</span>
+            <span class="badge ikea">IKEA</span>
+            <span class="info">
+              <span class="amount">50 € Gutschein</span>
+              <span class="hint">Für Deko, Möbel &amp; mehr</span>
+            </span>
+          </span>
+        </label>
+
+        <label class="option">
+          <input type="radio" name="gutschein" value="Jysk-Gutschein (50 €)" required>
+          <span class="box jysk">
+            <span class="check">&#10003;</span>
+            <span class="badge jysk">JYSK</span>
+            <span class="info">
+              <span class="amount">50 € Gutschein</span>
+              <span class="hint">Für Matratzen, Textilien &amp; mehr</span>
+            </span>
+          </span>
+        </label>
+
+        <label class="option">
+          <input type="radio" name="gutschein" value="IKEA + Jysk-Gutschein (je 25 €)" required>
+          <span class="box both">
+            <span class="check">&#10003;</span>
+            <span class="badge both">IKEA + JYSK</span>
+            <span class="info">
+              <span class="amount">Jeweils 25 € pro Gutschein</span>
+              <span class="hint">Einer bei IKEA, einer bei JYSK</span>
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <label class="field" for="email">Auf welche E-Mail soll dein Gutschein gesendet werden?</label>
+      <input type="email" id="email" name="email" placeholder="deine-email@beispiel.de" required>
+      <div class="err" id="err"></div>
+
+      <button type="submit" id="sendBtn">Auswahl absenden</button>
+    </form>
+
+    <div class="thanks" id="thanks">
+      <span class="mini-baloon"></span>
+      <span class="mini-baloon jysk"></span>
+      <h2>Happy Birthday, Sandra!</h2>
+      <p>Deine Auswahl ist angekommen. <br>Wir wünschen dir noch einen wunderschönen Geburtstag!</p>
+    </div>
+  </div>
+
+<script>
+  if (new URLSearchParams(window.location.search).get("gesendet") === "ok") {
+    document.getElementById("thanks").style.display = "block";
+    document.getElementById("voucherForm").style.display = "none";
+  }
+
+  const form = document.getElementById("voucherForm");
+  const email = document.getElementById("email");
+  const err = document.getElementById("err");
+  const btn = document.getElementById("sendBtn");
+
+  form.addEventListener("submit", function (e) {
+    const choice = document.querySelector('input[name="gutschein"]:checked');
+    const mail = email.value.trim();
+
+    if (!choice) {
+      e.preventDefault();
+      err.textContent = "Bitte wähle zuerst einen Gutschein aus.";
+      return;
+    }
+
+    if (!mail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
+      e.preventDefault();
+      err.textContent = "Bitte gib eine gültige E-Mail-Adresse ein.";
+      return;
+    }
+
+    err.textContent = "";
+    btn.disabled = true;
+    btn.textContent = "Wird gesendet ...";
+  });
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduceMotion) {
+    const colors = ["#ff6b9d", "#ffdb00", "#0058a3", "#c2185b", "#4bb543",
+                    "#ff8c42", "#ff5a5f", "#37b6c9", "#f4b400", "#e6399a"];
+    for (let i = 0; i < 18; i++) {
+      const b = document.createElement("div");
+      b.className = "balloon";
+      const size = 42 + Math.random() * 34;
+      b.style.width = size + "px";
+      b.style.height = size * 1.28 + "px";
+      b.style.left = Math.random() * 92 + "vw";
+      b.style.setProperty("--col", colors[Math.floor(Math.random() * colors.length)]);
+      b.style.animationDuration = 9 + Math.random() * 7 + "s";
+      b.style.animationDelay = -Math.random() * 18 + "s";
+      document.body.appendChild(b);
+    }
+  }
+</script>
+</body>
+</html>
