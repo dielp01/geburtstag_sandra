@@ -71,6 +71,23 @@
     100% { transform: translate3d(0, -120vh, 0) rotate(-4deg); }
   }
 
+  /* ---------- Konfetti ---------- */
+  .confetti-piece {
+    position: fixed;
+    top: -24px;
+    left: 50%;
+    z-index: 4;
+    pointer-events: none;
+    animation: confettiFall linear forwards;
+    will-change: transform;
+  }
+
+  @keyframes confettiFall {
+    0%   { transform: translate3d(0, -12px, 0) rotate(0deg); opacity: 1; }
+    90%  { transform: translate3d(var(--sway), 98vh, 0) rotate(var(--rot)); opacity: 1; }
+    100% { transform: translate3d(var(--sway), 104vh, 0) rotate(var(--rot)); opacity: 0; }
+  }
+
   /* ---------- Einblend-Animationen ---------- */
   .card {
     animation: popIn .7s cubic-bezier(.22, 1.4, .42, 1) both;
@@ -98,8 +115,9 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .balloon, .card, h1, p.sub, .option, label.field,
+    .balloon, .confetti-piece, .card, h1, p.sub, .option, label.field,
     input[type="email"], #sendBtn, .thanks { animation: none !important; }
+    .confetti-piece { display: none !important; }
   }
 
   /* ---------- Karte & Formular ---------- */
@@ -407,6 +425,9 @@
   if (new URLSearchParams(window.location.search).get("gesendet") === "ok") {
     document.getElementById("thanks").style.display = "block";
     document.getElementById("voucherForm").style.display = "none";
+    spawnConfetti(200);
+  } else {
+    spawnConfetti(140);
   }
 
   const form = document.getElementById("voucherForm");
@@ -434,6 +455,31 @@
     btn.disabled = true;
     btn.textContent = "Wird gesendet ...";
   });
+
+  function spawnConfetti(count) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const colors = ["#0058a3", "#ffdb00", "#c2185b", "#4bb543",
+                    "#ff8c42", "#37b6c9", "#ff5a5f", "#7b2d8b", "#f4b400", "#ff6b9d"];
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement("span");
+      p.className = "confetti-piece";
+      const circ = Math.random() < 0.4;
+      const size = 6 + Math.random() * 8;
+      p.style.left = Math.random() * 100 + "vw";
+      p.style.width = size + "px";
+      p.style.height = circ ? size + "px" : size * (0.5 + Math.random() * 0.5) + "px";
+      p.style.borderRadius = circ ? "50%" : "2px";
+      p.style.background = colors[Math.floor(Math.random() * colors.length)];
+      const sway = (20 + Math.random() * 80) * (Math.random() < 0.5 ? -1 : 1);
+      p.style.setProperty("--sway", sway + "px");
+      p.style.setProperty("--rot", (360 + Math.random() * 720) + "deg");
+      p.style.animationDuration = (2.6 + Math.random() * 2.8) + "s";
+      p.style.animationDelay = (Math.random() * 1.6) + "s";
+      p.addEventListener("animationend", function () { p.remove(); });
+      document.body.appendChild(p);
+    }
+  }
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!reduceMotion) {
