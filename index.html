@@ -251,6 +251,70 @@
     line-height: 1.35;
   }
 
+  .amounts-panel {
+    display: none;
+    margin: 20px 0 6px;
+    padding: 14px 16px;
+    border: 2px dashed var(--both);
+    border-radius: 14px;
+    background: #faf2fb;
+  }
+
+  .amounts-panel.open { display: block; }
+
+  .amounts-panel .amounts-title {
+    display: block;
+    font-weight: 700;
+    color: var(--both);
+    margin-bottom: 10px;
+  }
+
+  .amounts-panel .fields {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .amounts-panel .fields label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .95rem;
+    font-weight: 600;
+    color: #444;
+  }
+
+  .amounts-panel input[type="number"] {
+    width: 90px;
+    padding: 8px 10px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-align: center;
+    border: 2px solid #d8d8d8;
+    border-radius: 10px;
+    outline: none;
+    transition: border-color .15s ease;
+  }
+
+  .amounts-panel input[type="number"]:disabled {
+    background: #f3f3f3;
+    color: #9a9a9a;
+    border-color: #e4e4e4;
+  }
+
+  .amounts-panel input[type="number"]:focus {
+    border-color: var(--both);
+  }
+
+  .amounts-panel .hint.sum-hint {
+    margin-top: 8px;
+    min-height: 1.2em;
+    font-weight: 600;
+  }
+
+  .sum-hint.ok { color: #178a38; }
+  .sum-hint.bad { color: #c33; }
+
   .box .check {
     position: absolute;
     top: 14px;
@@ -366,44 +430,57 @@
       <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
 
       <h1>Happy Birthday Sandra!</h1>
-      <p class="sub">Zu deinem Geburtstag schenken wir dir einen Gutschein über <strong>50&nbsp;€</strong>. Was wünschst du dir?</p>
+      <p class="sub">Zu deinem Geburtstag schenken wir dir einen Gutschein über insgesamt <strong>70&nbsp;€</strong>. Was wünschst du dir?</p>
 
       <div class="options">
         <label class="option">
-          <input type="radio" name="gutschein" value="IKEA-Gutschein (50 €)" required>
+          <input type="radio" name="gutschein" value="IKEA-Gutschein (70 €)" required>
           <span class="box ikea">
             <span class="check">&#10003;</span>
             <span class="badge ikea">IKEA</span>
             <span class="info">
-              <span class="amount">50 € Gutschein</span>
+              <span class="amount">70 € Gutschein</span>
               <span class="hint">Für Deko, Möbel &amp; mehr</span>
             </span>
           </span>
         </label>
 
         <label class="option">
-          <input type="radio" name="gutschein" value="Jysk-Gutschein (50 €)" required>
+          <input type="radio" name="gutschein" value="Jysk-Gutschein (70 €)" required>
           <span class="box jysk">
             <span class="check">&#10003;</span>
             <span class="badge jysk">JYSK</span>
             <span class="info">
-              <span class="amount">50 € Gutschein</span>
+              <span class="amount">70 € Gutschein</span>
               <span class="hint">Für Matratzen, Textilien &amp; mehr</span>
             </span>
           </span>
         </label>
 
         <label class="option">
-          <input type="radio" name="gutschein" value="IKEA + Jysk-Gutschein (je 25 €)" required>
-          <span class="box both">
+          <input type="radio" name="gutschein" value="IKEA + Jysk-Gutschein (individuell)" required>
+          <span class="box both" id="bothBox">
             <span class="check">&#10003;</span>
             <span class="badge both">IKEA + JYSK</span>
             <span class="info">
-              <span class="amount">Jeweils 25 € pro Gutschein</span>
-              <span class="hint">Einer bei IKEA, einer bei JYSK</span>
+              <span class="amount">Beide – frei aufteilen</span>
+              <span class="hint">Gesamtbetrag max. 70 € – Beträge unten angeben</span>
             </span>
           </span>
         </label>
+      </div>
+
+      <div class="amounts-panel" id="amountsPanel" aria-live="polite">
+        <span class="amounts-title">Beträge aufteilen (IKEA + JYSK)</span>
+        <span class="fields">
+          <label>IKEA
+            <input type="number" id="betragIkea" name="betrag_ikea" min="1" max="70" step="1" placeholder="35" disabled>
+          </label>
+          <label>JYSK
+            <input type="number" id="betragJysk" name="betrag_jysk" min="1" max="70" step="1" placeholder="35" disabled>
+          </label>
+        </span>
+        <span class="hint sum-hint" id="sumHint"></span>
       </div>
 
       <label class="field" for="email">Auf welche E-Mail soll dein Gutschein gesendet werden?</label>
@@ -434,6 +511,63 @@
   const email = document.getElementById("email");
   const err = document.getElementById("err");
   const btn = document.getElementById("sendBtn");
+  const betragIkea = document.getElementById("betragIkea");
+  const betragJysk = document.getElementById("betragJysk");
+  const sumHint = document.getElementById("sumHint");
+  const amountsPanel = document.getElementById("amountsPanel");
+  const radios = document.querySelectorAll('input[name="gutschein"]');
+
+  radios.forEach(function (radio) {
+    radio.addEventListener("change", function () {
+      const isBoth = this.value.indexOf("individuell") !== -1;
+      amountsPanel.classList.toggle("open", isBoth);
+      betragIkea.disabled = !isBoth;
+      betragJysk.disabled = !isBoth;
+      if (isBoth) {
+        betragIkea.focus();
+        updateSumHint();
+      } else {
+        sumHint.textContent = "";
+        sumHint.className = "hint sum-hint";
+      }
+    });
+  });
+
+  function toNumber(v) {
+    if (typeof v !== "string") return NaN;
+    return parseFloat(v.trim().replace(",", "."));
+  }
+
+  function updateSumHint() {
+    const a = toNumber(betragIkea.value);
+    const b = toNumber(betragJysk.value);
+    const has = betragIkea.value.trim() !== "" || betragJysk.value.trim() !== "";
+
+    if (!has) {
+      sumHint.textContent = "";
+      sumHint.className = "hint sum-hint";
+      return;
+    }
+
+    if ((betragIkea.value.trim() !== "" && !(a > 0)) ||
+        (betragJysk.value.trim() !== "" && !(b > 0))) {
+      sumHint.textContent = "Bitte gültige Beträge in Euro eingeben.";
+      sumHint.className = "hint sum-hint bad";
+      return;
+    }
+
+    const sum = (isNaN(a) ? 0 : a) + (isNaN(b) ? 0 : b);
+    if (sum > 70) {
+      sumHint.textContent = "Die Summe (aktuell " + sum.toLocaleString("de-DE") + " €) darf 70 € nicht überschreiten.";
+      sumHint.className = "hint sum-hint bad";
+    } else {
+      sumHint.textContent = "Gesamt: " + sum.toLocaleString("de-DE") + " € von 70 €";
+      sumHint.className = "hint sum-hint ok";
+    }
+  }
+
+  betragIkea.addEventListener("input", updateSumHint);
+  betragJysk.addEventListener("input", updateSumHint);
 
   form.addEventListener("submit", function (e) {
     const choice = document.querySelector('input[name="gutschein"]:checked');
@@ -443,6 +577,27 @@
       e.preventDefault();
       err.textContent = "Bitte wähle zuerst einen Gutschein aus.";
       return;
+    }
+
+    if (choice.value.indexOf("individuell") !== -1) {
+      const a = toNumber(betragIkea.value);
+      const b = toNumber(betragJysk.value);
+
+      if (!betragIkea.value.trim() || !(a > 0)) {
+        e.preventDefault();
+        err.textContent = "Bitte trage einen IKEA-Betrag ein (größer als 0 €).";
+        return;
+      }
+      if (!betragJysk.value.trim() || !(b > 0)) {
+        e.preventDefault();
+        err.textContent = "Bitte trage einen JYSK-Betrag ein (größer als 0 €).";
+        return;
+      }
+      if (a + b > 70) {
+        e.preventDefault();
+        err.textContent = "Die beiden Beträge zusammen dürfen 70 € nicht überschreiten.";
+        return;
+      }
     }
 
     if (!mail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
