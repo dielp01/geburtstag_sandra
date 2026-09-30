@@ -312,8 +312,9 @@
     font-weight: 600;
   }
 
-  .sum-hint.ok { color: #178a38; }
-  .sum-hint.bad { color: #c33; }
+  .sum-hint.ok   { color: #178a38; }
+  .sum-hint.warn { color: #b26a00; }
+  .sum-hint.bad  { color: #c33; }
 
   .box .check {
     position: absolute;
@@ -422,12 +423,11 @@
 </head>
 <body>
   <div class="card">
-    <form id="voucherForm" action="https://formsubmit.co/dielp01@gmail.com" method="POST" novalidate>
-      <input type="hidden" name="_subject" value="Gutschein-Auswahl zum Geburtstag von Sandra">
-      <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_captcha" value="false">
-      <input type="hidden" name="_redirect" value="https://dielp01.github.io/geburtstag_sandra/?gesendet=ok">
-      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+    <form id="voucherForm" action="https://api.web3forms.com/submit" method="POST" novalidate>
+      <input type="hidden" name="access_key" value="0779da6d-e109-4385-8a98-95ec1208c6d9">
+      <input type="hidden" name="subject" value="Gutschein-Auswahl zum Geburtstag von Sandra">
+      <input type="hidden" name="redirect" value="https://dielp01.github.io/geburtstag_sandra/?gesendet=ok">
+      <input type="checkbox" name="botcheck" class="hidden" style="display:none" tabindex="-1" autocomplete="off">
 
       <h1>Happy Birthday Sandra!</h1>
       <p class="sub">Zu deinem Geburtstag schenken wir dir einen Gutschein über insgesamt <strong>70&nbsp;€</strong>. Was wünschst du dir?</p>
@@ -471,13 +471,13 @@
       </div>
 
       <div class="amounts-panel" id="amountsPanel" aria-live="polite">
-        <span class="amounts-title">Beträge aufteilen (IKEA + JYSK)</span>
+        <span class="amounts-title">Beträge aufteilen – zusammen genau 70 €</span>
         <span class="fields">
           <label>IKEA
-            <input type="number" id="betragIkea" name="betrag_ikea" min="1" max="70" step="1" placeholder="35" disabled>
+            <input type="number" id="betragIkea" name="betrag_ikea" min="1" max="70" step="0.01" placeholder="35" disabled>
           </label>
           <label>JYSK
-            <input type="number" id="betragJysk" name="betrag_jysk" min="1" max="70" step="1" placeholder="35" disabled>
+            <input type="number" id="betragJysk" name="betrag_jysk" min="1" max="70" step="0.01" placeholder="35" disabled>
           </label>
         </span>
         <span class="hint sum-hint" id="sumHint"></span>
@@ -524,50 +524,74 @@
       betragIkea.disabled = !isBoth;
       betragJysk.disabled = !isBoth;
       if (isBoth) {
+        if (betragIkea.value.trim() === "" && betragJysk.value.trim() === "") {
+          betragIkea.value = "35";
+          betragJysk.value = "35";
+        }
         betragIkea.focus();
         updateSumHint();
       } else {
-        sumHint.textContent = "";
-        sumHint.className = "hint sum-hint";
+        setSumHint("", "");
       }
+      err.textContent = "";
     });
   });
 
-  function toNumber(v) {
-    if (typeof v !== "string") return NaN;
-    return parseFloat(v.trim().replace(",", "."));
+  const TOTAL_CENTS = 7000;
+
+  function toCents(v) {
+    if (typeof v !== "string") return null;
+    const s = v.trim();
+    if (s === "") return null;
+    const n = parseFloat(s.replace(",", "."));
+    return isFinite(n) ? Math.round(n * 100) : NaN;
+  }
+
+  function fmtEuro(cents) {
+    return (cents / 100).toLocaleString("de-DE", { maximumFractionDigits: 2 }) + " €";
+  }
+
+  function setSumHint(text, state) {
+    sumHint.textContent = text;
+    sumHint.className = "hint sum-hint" + (state ? " " + state : "");
+  }
+
+  function readAmounts() {
+    const a = toCents(betragIkea.value);
+    const b = toCents(betragJysk.value);
+    return {
+      a: a,
+      b: b,
+      sum: (a > 0 ? a : 0) + (b > 0 ? b : 0),
+      empty: a === null && b === null,
+      invalid: (a !== null && !(a > 0)) || (b !== null && !(b > 0))
+    };
   }
 
   function updateSumHint() {
-    const a = toNumber(betragIkea.value);
-    const b = toNumber(betragJysk.value);
-    const has = betragIkea.value.trim() !== "" || betragJysk.value.trim() !== "";
+    const st = readAmounts();
 
-    if (!has) {
-      sumHint.textContent = "";
-      sumHint.className = "hint sum-hint";
+    if (st.invalid) {
+      setSumHint("Bitte gültige Beträge in Euro eingeben.", "bad");
       return;
     }
-
-    if ((betragIkea.value.trim() !== "" && !(a > 0)) ||
-        (betragJysk.value.trim() !== "" && !(b > 0))) {
-      sumHint.textContent = "Bitte gültige Beträge in Euro eingeben.";
-      sumHint.className = "hint sum-hint bad";
+    if (st.empty) {
+      setSumHint("", "");
       return;
     }
-
-    const sum = (isNaN(a) ? 0 : a) + (isNaN(b) ? 0 : b);
-    if (sum > 70) {
-      sumHint.textContent = "Die Summe (aktuell " + sum.toLocaleString("de-DE") + " €) darf 70 € nicht überschreiten.";
-      sumHint.className = "hint sum-hint bad";
-    } else {
-      sumHint.textContent = "Gesamt: " + sum.toLocaleString("de-DE") + " € von 70 €";
-      sumHint.className = "hint sum-hint ok";
+    if (st.sum > TOTAL_CENTS) {
+      setSumHint("Zu viel: " + fmtEuro(st.sum) + " – zusammen sind nur 70 € möglich.", "bad");
+      return;
     }
+    if (st.sum === TOTAL_CENTS) {
+      setSumHint("Perfekt – die 70 € sind aufgeteilt.", "ok");
+      return;
+    }
+    setSumHint("Noch " + fmtEuro(TOTAL_CENTS - st.sum) + " offen.", "warn");
   }
 
-  betragIkea.addEventListener("input", updateSumHint);
-  betragJysk.addEventListener("input", updateSumHint);
+  betragIkea.addEventListener("input", function () { updateSumHint(); err.textContent = ""; });
+  betragJysk.addEventListener("input", function () { updateSumHint(); err.textContent = ""; });
 
   form.addEventListener("submit", function (e) {
     const choice = document.querySelector('input[name="gutschein"]:checked');
@@ -580,22 +604,23 @@
     }
 
     if (choice.value.indexOf("individuell") !== -1) {
-      const a = toNumber(betragIkea.value);
-      const b = toNumber(betragJysk.value);
+      const st = readAmounts();
 
-      if (!betragIkea.value.trim() || !(a > 0)) {
+      if (!(st.a > 0)) {
         e.preventDefault();
         err.textContent = "Bitte trage einen IKEA-Betrag ein (größer als 0 €).";
         return;
       }
-      if (!betragJysk.value.trim() || !(b > 0)) {
+      if (!(st.b > 0)) {
         e.preventDefault();
         err.textContent = "Bitte trage einen JYSK-Betrag ein (größer als 0 €).";
         return;
       }
-      if (a + b > 70) {
+      if (st.sum !== TOTAL_CENTS) {
         e.preventDefault();
-        err.textContent = "Die beiden Beträge zusammen dürfen 70 € nicht überschreiten.";
+        err.textContent = st.sum > TOTAL_CENTS
+          ? "Die beiden Beträge zusammen dürfen 70 € nicht überschreiten."
+          : "Es fehlen noch " + fmtEuro(TOTAL_CENTS - st.sum) + " bis zur 70 €.";
         return;
       }
     }
